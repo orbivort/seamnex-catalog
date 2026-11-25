@@ -5,7 +5,7 @@
 | Product | Metabase |
 | Pinned release | `metabase/metabase:v0.65.2` (GitHub release `v0.65.2`, 2026-10-30) |
 | Image digest | `sha256:b62ac14872e9992d28218a2264d99484e0707064aae9fb594d8fbb3bc1518a9e` |
-| Application database | `postgres:18-alpine` (PostgreSQL 18.6), sidecar `db` |
+| Application database | `postgres:18.7-alpine` (PostgreSQL 18.7), sidecar `db`, digest `sha256:0115267ab5a509022df9319c77be365cef335adb71556c75f60f5360ee247e71` |
 | Catalogue `httpPort` | `3000` — the port the container listens on |
 | Repository | <https://github.com/metabase/metabase> |
 

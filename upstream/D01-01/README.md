@@ -7,7 +7,7 @@ air-gapped host). The resolver copies this tree into the per-attempt source dire
 
 | Concern | Rule |
 | --- | --- |
-| Images | Every image is pinned to a full version. The compose policy refuses a floating tag (`unpinned_image`) before anything is applied. |
+| Images | Every image is pinned to a full version, and the MariaDB sidecar to its digest as well (`mariadb:11.4.13@sha256:a8992b5e…`). The compose policy refuses a floating tag (`unpinned_image`) before anything is applied. |
 | Host ports | `ports: ['8080:80']` is kept from upstream; the platform rewrites it to `expose: ['80']` and asserts zero published ports immediately before apply. |
 | Container names | `container_name` is kept from upstream and stripped by the platform, which records the patch. Two instances of one product must not collide. |
 | `volumes_from` | Replaced by explicit named volumes: the construct is compose-v1 legacy and the Compose v2+ CLI does not implement it. |

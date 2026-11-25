@@ -33,8 +33,8 @@ D07-01. The resolver copies this directory (`cpSync`, recursive) into
 | `erpnext-websocket` | socket.io `:9000` | Required, not optional: the nginx template declares it as an upstream, and nginx refuses to start when an upstream host does not resolve. |
 | `erpnext-worker-short` / `erpnext-worker-long` | RQ workers | Run queued jobs (email, reports, imports). |
 | `erpnext-scheduler` | `bench schedule` | Long-running loop (`frappe.utils.scheduler.start_scheduler`), so it satisfies the platform's "all containers running" rule. |
-| `erpnext-db` | MariaDB 11.4 | `utf8mb4` + `utf8mb4_unicode_ci`; `bench new-site` fails its first migration without them. |
-| `erpnext-redis-cache` / `erpnext-redis-queue` | Redis 7 | No persistence: the state is rebuildable and a replayed queue is worse than an empty one. |
+| `erpnext-db` | MariaDB 11.4.13 | `utf8mb4` + `utf8mb4_unicode_ci`; `bench new-site` fails its first migration without them. |
+| `erpnext-redis-cache` / `erpnext-redis-queue` | Redis 7.4.12 | No persistence: the state is rebuildable and a replayed queue is worse than an empty one. |
 
 ## Deliberate differences from the reference layout
 
@@ -292,5 +292,5 @@ in `list-apps`.
 | Image | Digest |
 | --- | --- |
 | `frappe/erpnext:v16.53.0` | `sha256:b961d69ed3265f44f712f40be58a3e6a22c8662f61a7e1a8097765534e3e9be2` — the multi-arch index digest, read from the registry (`docker buildx imagetools inspect frappe/erpnext:v16.53.0`) and identical to the catalog entry's `imageDigest`. That field is the single authority: a deployment compares the digest of the manifest it pulled against it. This table used to carry a second, different value that no artefact agreed with — `SOURCE_REVISION` holds no digest at all. |
-| `mariadb:11.4` | inherited from D01-01/D04-01/D07-01 — same tag, already on the host |
-| `redis:7-alpine` | inherited from the platform stack — same tag, already on the host |
+| `mariadb:11.4.13` | `sha256:a8992b5e5404d11e03c54a31d0c1bdea3fd116d283aa6d1a627551f29045309b` — inherited from D01-01/D04-01/D07-01; same tag **and digest**, already on the host |
+| `redis:7.4.12-alpine` | `sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe` — inherited from the platform stack; same tag **and digest**, already on the host |

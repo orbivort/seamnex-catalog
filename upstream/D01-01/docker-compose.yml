@@ -31,7 +31,7 @@ name: espocrm
 
 services:
   espocrm-db:
-    image: mariadb:11.4
+    image: mariadb:11.4.13@sha256:a8992b5e5404d11e03c54a31d0c1bdea3fd116d283aa6d1a627551f29045309b
     container_name: espocrm-db
     environment:
       # No fallback on purpose: `${...:-mariadb_root}` is how every instance of every product ends up

@@ -13,7 +13,7 @@
 #      with `pull_policy: never`: the tag can only ever name an image this host built. A tag under the
 #      product's name used to resolve to a third party's repackaging the moment the local build was
 #      missing, which is exactly what deployed an uninstalled application;
-#   2. the database service is added here: `mariadb:11.4` with a named volume and a healthcheck. The
+#   2. the database service is added here: `mariadb:11.4.13` with a named volume and a healthcheck. The
 #      installer creates the schema itself and *refuses* a pre-existing database, so this file
 #      deliberately does **not** set `MARIADB_DATABASE`;
 #   3. only `lib/confs` is mounted. Upstream declares `VOLUME ["/var/www/html"]`; mounting the whole
@@ -22,7 +22,7 @@ name: orangehrm
 
 services:
   orangehrm-db:
-    image: mariadb:11.4
+    image: mariadb:11.4.13@sha256:a8992b5e5404d11e03c54a31d0c1bdea3fd116d283aa6d1a627551f29045309b
     environment:
       # No fallback on purpose: `${...:-root}` is the kind of default that makes every instance of
       # every product share a superuser password. The catalog entry declares this variable required.

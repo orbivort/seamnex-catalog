@@ -50,7 +50,7 @@ name: erpnext
 
 services:
   erpnext-db:
-    image: mariadb:11.4
+    image: mariadb:11.4.13@sha256:a8992b5e5404d11e03c54a31d0c1bdea3fd116d283aa6d1a627551f29045309b
     # ERPNext's schema assumes utf8mb4 and a server-side collation; without these
     # flags `bench new-site` succeeds but the first migration fails on an index
     # key that is longer than the 767-byte limit of the default collation.
@@ -74,7 +74,7 @@ services:
     restart: unless-stopped
 
   erpnext-redis-cache:
-    image: redis:7-alpine
+    image: redis:7.4.12-alpine@sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe
     # No persistence: both Redis instances hold cache and queue state that
     # ERPNext rebuilds, and an appendonly file in a named volume only makes a
     # stale queue replay after a restart.
@@ -82,7 +82,7 @@ services:
     restart: unless-stopped
 
   erpnext-redis-queue:
-    image: redis:7-alpine
+    image: redis:7.4.12-alpine@sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe
     command: ['redis-server', '--save', '', '--appendonly', 'no']
     restart: unless-stopped
 

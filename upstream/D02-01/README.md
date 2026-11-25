@@ -7,7 +7,7 @@ host). The resolver copies this tree into the per-attempt source directory and r
 
 | Concern | Rule |
 | --- | --- |
-| Images | `mautic/mautic:7.2.2-apache` (base, pinned) and `mariadb:11.4`. The application is a thin layer over the base tag, built as `seamnex/mautic:7.2.2`; a floating tag is refused by the compose policy (`unpinned_image`) before anything is applied. |
+| Images | `mautic/mautic:7.2.2-apache` (base, pinned) and `mariadb:11.4.13`. The application is a thin layer over the base tag, built as `seamnex/mautic:7.2.2`; a floating tag is refused by the compose policy (`unpinned_image`) before anything is applied. |
 | Host ports | No `ports:` at all: the platform publishes none, the edge reaches the container on the instance network, and `expose: ['80']` is what the catalog `httpPort` refers to. |
 | Database | Added here. Mautic's installer creates tables but neither the schema nor the account, so the MariaDB container creates both (`MARIADB_DATABASE`, `MARIADB_USER`) and a healthcheck gates the application on `--innodb_initialized`, not merely on a socket. |
 | Build | The wrapper image is a **declared local build**: `mautic-web` carries `build:` + `pull_policy: never`, so the executor produces `seamnex/mautic:7.2.2` from this tree in the deployment's `build` stage and refuses to start any other image under that tag (ADR-BE-40). The build goes to BuildKit through `SEAMNEX_BUILDKIT_ADDR`, never through the socket proxy — a build session sent through the proxy is answered `403` before a single instruction is read. "Prefetch images" builds it ahead of the window; a host-side `docker build -t seamnex/mautic:7.2.2 platform/upstream/D02-01` is only a manual equivalent. |

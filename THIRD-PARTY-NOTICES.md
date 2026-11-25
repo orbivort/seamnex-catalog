@@ -42,9 +42,9 @@ Each entry below is anchored to a file, so a reviewer can check it rather than t
 | Field | Authority |
 | --- | --- |
 | Product, version, image reference | `catalog/<id>.json` (`product`, `upstream.currentVersion`, `imageRef`) |
-| Image digest | `catalog/<id>.json` (`imageDigest`) — the reviewed artefact |
+| Image digest | `catalog/<id>.json` (`imageDigest`) — the reviewed artefact for the product image. The catalog record has no sidecar slot: a sidecar's digest lives in the Compose `image:` reference (§5) |
 | Licence identifier | `catalog/<id>.json` (`licenseId`) — the short SPDX form, normalised here to a full SPDX expression |
-| Services and sidecar images | `upstream/<id>/docker-compose.yml` |
+| Services and sidecar images | `upstream/<id>/docker-compose.yml` (tag **and digest** in the `image:` reference) |
 | Base image of a locally built image | `upstream/<id>/Dockerfile` |
 | Deeper image contents | the image itself; see §6.9 for how to enumerate them |
 
@@ -83,9 +83,9 @@ scope: this file covers what this repository puts on the host.
 | 5 | OrangeHRM | 5.9 | `GPL-3.0-only` | HR application | D07-01 | `unverified` |
 | 6 | OpenProject | 17.9.6 | `GPL-3.0-only` | project management | D09-01 | `repo` |
 | 7 | Metabase | 0.65.2 | `AGPL-3.0-only` | BI / analytics | D11-01 | `repo` |
-| 8 | MariaDB | 11.4 | `GPL-2.0-only` (server), `LGPL-2.1-only` (client libs) | database sidecar | D01-01, D02-01, D06-01, D07-01 | `inherited` |
-| 9 | Redis | `7-alpine` (floating minor) | `RSALv2` **or** `SSPL-1.0` for 7.4+; `BSD-3-Clause` for ≤ 7.2.4 | cache and job queue | D06-01 | `tag-dependent` |
-| 10 | PostgreSQL | 18 (`18-alpine`, 18.6) | `PostgreSQL` | application database | D11-01 | `inherited` |
+| 8 | MariaDB | 11.4.13 | `GPL-2.0-only` (server), `LGPL-2.1-only` (client libs) | database sidecar | D01-01, D02-01, D06-01, D07-01 | `inherited` |
+| 9 | Redis | 7.4.12 (`7.4.12-alpine`) | `RSALv2` **or** `SSPL-1.0` for 7.4+; `BSD-3-Clause` for ≤ 7.2.4 | cache and job queue | D06-01 | `inherited` |
+| 10 | PostgreSQL | 18.7 (`18.7-alpine`) | `PostgreSQL` | application database | D11-01 | `inherited` |
 | 11 | PHP | 8.3 | `PHP-3.01` | runtime of the built images | D02-01, D07-01 | `inherited` |
 | 12 | Apache HTTP Server | 2.4 | `Apache-2.0` | web server of the built images | D02-01, D07-01 | `inherited` |
 | 13 | Debian GNU/Linux | 12 (bookworm) | mixed (`GPL-2.0-only`, `LGPL-2.1-only`, `MIT`, `BSD-3-Clause`, …) | base OS of the built images | D02-01, D07-01 | `inherited` |
@@ -103,7 +103,7 @@ redistributing the affected image.
 | --- | --- | --- | --- |
 | G1 | Mautic 7.2.2: the `LICENSE` inside `mautic/mautic:7.2.2-apache` was never read (`upstream/D02-01/IMAGE-LICENCES.md`) | if the product is `GPL-2.0-only`, the built layer stack is not conveyable (§7.2) | read `LICENSE` and `vendor/composer/installed.json` in the image, replace `LicenseRef-Mautic-Upstream` in the OCI label, record the review here |
 | G2 | OrangeHRM 5.9: the archive's `LICENSE` was never read (`upstream/D07-01/IMAGE-LICENCES.md`) | same as G1 | read `license/` and `composer.json` in the built image, replace `LicenseRef-OrangeHRM-Upstream` |
-| G3 | Redis is referenced as `redis:7-alpine`, a floating minor tag; no digest is recorded in `catalog/D06-01.json` | the licence family changes at 7.4 (§7.5) | pin a digest or an explicit `7.2.x` / `8.x` tag before the next deployment review |
+| G3 | Redis is pinned by tag **and digest** in the Compose file, so family and artefact are both fixed at `RSALv2`/`SSPL-1.0` — but `catalog/D06-01.json` records no sidecar digest, and the licence is not OSI-approved (§7.5) | a reviewer reading the catalog alone cannot see which Redis artefact runs | add a sidecar digest to the catalog record, or re-pin `7.2.x` (`BSD-3-Clause`) / `8.x` (`AGPL-3.0-only`) if a different licence baseline is required |
 | G4 | Metabase: the AGPL text applies to the open-source edition; the repository's `enterprise/` tree is under the Metabase Commercial Licence | an operator who enables a paid feature changes the terms of the instance | confirm the edition at deployment; enterprise features are not enabled by this repository |
 | G5 | SQLite `sample-database.sqlite` ships in the Metabase image and is extracted even with `MB_LOAD_SAMPLE_CONTENT=false` (`upstream/D11-01/README.md`). SQLite is `blessing` (public domain) | none, but it is an uninventoried component in the image | note it here; no attribution obligation |
 | G6 | Ruby gems, Python packages and Debian/Alpine package sets inside the upstream images are not enumerated | a licence with an obligation (LGPL, source-available) could hide there | generate an SBOM per image (§6.9) and add rows |
@@ -117,23 +117,23 @@ The arrows read "is built from / runs on". Indentation shows what is inside the 
 ```text
 D01-01 EspoCRM
 ├── espocrm/espocrm:10.0.11          EspoCRM 10.0.11 + PHP + Apache + Debian   [inherited]
-└── mariadb:11.4                     MariaDB 11.4 + Debian                     [inherited]
+└── mariadb:11.4.13                  MariaDB 11.4.13 + Debian                  [inherited]
 
 D02-01 Mautic
 ├── seamnex/mautic:7.2.2 (built here)
 │   └── mautic/mautic:7.2.2-apache   Mautic 7.2.2 + PHP + Apache + Debian      [inherited, unverified]
-└── mariadb:11.4                     MariaDB 11.4 + Debian                     [inherited]
+└── mariadb:11.4.13                  MariaDB 11.4.13 + Debian                  [inherited]
 
 D06-01 ERPNext
 ├── frappe/erpnext:v16.53.0          ERPNext + Frappe + Python + nginx + Node + Debian  [inherited]
-├── mariadb:11.4                     MariaDB 11.4 + Debian                     [inherited]
-└── redis:7-alpine                   Redis 7.x + Alpine                        [tag-dependent]
+├── mariadb:11.4.13                  MariaDB 11.4.13 + Debian                  [inherited]
+└── redis:7.4.12-alpine              Redis 7.4.12 + Alpine                     [inherited]
 
 D07-01 OrangeHRM
 ├── seamnex/orangehrm:5.9 (built here)
 │   └── php:8.3-apache-bookworm      PHP 8.3 + Apache 2.4 + Debian 12          [inherited]
 │       └── OrangeHRM 5.9            release archive from SourceForge           [unverified]
-└── mariadb:11.4                     MariaDB 11.4 + Debian                     [inherited]
+└── mariadb:11.4.13                  MariaDB 11.4.13 + Debian                  [inherited]
 
 D09-01 OpenProject
 └── openproject/openproject:17.9.6   OpenProject + Rails/Puma + PostgreSQL 17
@@ -141,7 +141,7 @@ D09-01 OpenProject
 
 D11-01 Metabase
 ├── metabase/metabase:v0.65.2        Metabase + JVM + Jetty + JDBC drivers     [inherited]
-└── postgres:18-alpine               PostgreSQL 18.6 + Alpine                  [inherited]
+└── postgres:18.7-alpine             PostgreSQL 18.7 + Alpine                  [inherited]
 ```
 
 ---
@@ -223,7 +223,7 @@ D11-01 Metabase
 | --- | --- |
 | Component | OpenProject |
 | Version | 17.9.6 |
-| Image | `openproject/openproject:17.9.6@sha256:c4802aca392506c389ff10a2766caf949000383f20ac752ee5913e1793fdff98` — the only entry that pins the digest in the Compose file |
+| Image | `openproject/openproject:17.9.6@sha256:c4802aca392506c389ff10a2766caf949000383f20ac752ee5913e1793fdff98` — the first definition to pin the digest in the Compose file; the MariaDB, Redis and PostgreSQL sidecars follow the same rule (§5) |
 | Licence | `GPL-3.0-only` |
 | Copyright | OpenProject GmbH |
 | Source | <https://github.com/opf/openproject> · image: <https://hub.docker.com/r/openproject/openproject> · releases: <https://github.com/opf/openproject/releases> |
@@ -256,7 +256,8 @@ D11-01 Metabase
 | Field | Value |
 | --- | --- |
 | Component | MariaDB Server (and the client libraries in the same image) |
-| Version | 11.4 (image tag `mariadb:11.4`; no digest recorded in the catalog) |
+| Version | 11.4.13 |
+| Image | `mariadb:11.4.13@sha256:a8992b5e5404d11e03c54a31d0c1bdea3fd116d283aa6d1a627551f29045309b` — pinned by tag **and digest** in the Compose file of D01-01, D02-01, D06-01 and D07-01. The catalog record has no sidecar digest field, so those four files are the authority for this artefact. |
 | Licence | Server `GPL-2.0-only`; client libraries `LGPL-2.1-only`; the image also carries Debian packages |
 | Copyright | MariaDB Foundation / MariaDB plc and contributors; contains code originally copyright MySQL AB and Monty Program Ab |
 | Source | <https://github.com/MariaDB/server> · image build: <https://github.com/MariaDB/mariadb-docker> · <https://hub.docker.com/_/mariadb> |
@@ -269,12 +270,13 @@ D11-01 Metabase
 | Field | Value |
 | --- | --- |
 | Component | Redis |
-| Version | tag `redis:7-alpine` — a floating **minor** tag. It resolves to 7.4 or later today, and to different patch releases over time |
+| Version | 7.4.12 |
+| Image | `redis:7.4.12-alpine@sha256:7f7d30b7fdd09467bac58198a1f166dd69789d348d4fe859cccb20e0cf287fbe` — pinned by tag **and digest** in `upstream/D06-01/docker-compose.yml` (both Redis services) |
 | Licence | `RSALv2` **or** `SSPL-1.0` (dual) from 7.4 onward; `BSD-3-Clause` up to and including 7.2.4 |
 | Copyright | Redis Ltd.; earlier releases copyright Salvatore Sanfilippo and contributors |
 | Source | <https://github.com/redis/redis> · <https://hub.docker.com/_/redis> · licence history: <https://redis.io/legal/licenses/> |
 | Used by | D06-01 (`erpnext-redis-cache`, `erpnext-redis-queue`) |
-| Evidence | `tag-dependent` — G3 |
+| Evidence | `inherited` — the tag is pinned by digest, so the family is no longer resolution-dependent; the licence *policy* question stays open in G3 |
 | Notice | Neither `RSALv2` nor `SSPL-1.0` is an OSI-approved licence. Internal use as a cache and queue, with no modification and no offering of Redis itself as a service, is within the grant; do not expose Redis as a product. If a permissive or OSI baseline is required, pin `7.2.x` (BSD-3-Clause) or move to Redis 8 (`AGPL-3.0-only`) as a reviewed change. |
 
 ### 5.3 PostgreSQL 18
@@ -282,7 +284,8 @@ D11-01 Metabase
 | Field | Value |
 | --- | --- |
 | Component | PostgreSQL |
-| Version | 18 (image `postgres:18-alpine`, PostgreSQL 18.6 per `upstream/D11-01/README.md`) |
+| Version | 18.7 (per `upstream/D11-01/README.md`) |
+| Image | `postgres:18.7-alpine@sha256:0115267ab5a509022df9319c77be365cef335adb71556c75f60f5360ee247e71` — pinned by tag **and digest** in `upstream/D11-01/docker-compose.yml` |
 | Licence | `PostgreSQL` (permissive, BSD-style) |
 | Copyright | The PostgreSQL Global Development Group; portions The Regents of the University of California |
 | Source | <https://github.com/postgres/postgres> · image build: <https://github.com/docker-library/postgres> · <https://hub.docker.com/_/postgres> |
@@ -347,7 +350,7 @@ LGPL or source-available, and only an SBOM of the image settles it.
 | JDBC drivers | per driver (e.g. `BSD-2-Clause`, `Apache-2.0`, `MIT`) | respective vendors | the driver projects |
 | SQLite (`sample-database.sqlite`) | `blessing` (public domain) | D. Richard Hipp and contributors | <https://sqlite.org/> — see G5 |
 
-### 6.7 Alpine Linux base — `postgres:18-alpine`, `redis:7-alpine`
+### 6.7 Alpine Linux base — `postgres:18.7-alpine`, `redis:7.4.12-alpine`
 
 | Component | Licence | Copyright | Source |
 | --- | --- | --- | --- |
@@ -393,7 +396,7 @@ docker run --rm --entrypoint sh espocrm/espocrm:10.0.11 -c 'ls -1 /usr/share/doc
 docker run --rm --entrypoint sh frappe/erpnext:v16.53.0 -c 'grep -h "^License:" /usr/share/doc/*/copyright 2>/dev/null | sort | uniq -c | sort -rn | head -30'
 
 # 4. Alpine package licence metadata
-docker run --rm --entrypoint sh postgres:18-alpine -c 'grep -E "^P:|^L:" /lib/apk/db/installed | paste - - | sort -u | head -50'
+docker run --rm --entrypoint sh postgres:18.7-alpine -c 'grep -E "^P:|^L:" /lib/apk/db/installed | paste - - | sort -u | head -50'
 
 # 5. OCI labels a product declares about itself
 docker inspect --format '{{json .Config.Labels}}' openproject/openproject:17.9.6
@@ -452,11 +455,14 @@ makes `docker save` a licensing step as well as a backup step.
 
 ### 7.5 Redis is the one component whose licence is not settled by this repository
 
-`redis:7-alpine` is not a fixed artefact. Redis 7.4 moved from `BSD-3-Clause` to a dual
+`redis:7-alpine` was not a fixed artefact. Redis 7.4 moved from `BSD-3-Clause` to a dual
 `RSALv2`/`SSPL-1.0` licence, and Redis 8 added `AGPL-3.0-only` as an option. A deployment that
-resolved the tag in 2024 and one that resolves it today may therefore be running under different
-terms with no change in this repository. Either pin a digest and record which family it is, or pin
-`7.2.x` for a `BSD-3-Clause` baseline; do not leave the tag floating across a licence boundary (G3).
+resolved the tag in 2024 and one that resolves it today may therefore have been running under
+different terms with no change in this repository. The Compose file now pins
+`redis:7.4.12-alpine@sha256:7f7d30b7…`, so both the family and the artefact are fixed at
+`RSALv2`/`SSPL-1.0` and a deployment can no longer drift with the tag. What stays open (G3) is the
+licence policy, not the pin: re-pin `7.2.x` for a `BSD-3-Clause` baseline or `8.x` for
+`AGPL-3.0-only` as a reviewed change.
 
 ### 7.6 Notices must travel with the artefact
 
