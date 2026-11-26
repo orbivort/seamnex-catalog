@@ -1,16 +1,14 @@
 # Seamnex Catalog
 
-Curated catalog of self-hostable open-source business applications that the Seamnex platform
-deploys for small and mid-sized teams (roughly 5–100 users). Each entry pins one product to a
-reviewed upstream release and describes everything needed to deploy it reproducibly: runtime image
-and digest, licence, resource shape, persistent volumes, integration surface, and a typed
-environment declaration.
+Curated catalog of self-hostable open-source business applications that the Seamnex platform deploys
+for small and mid-sized teams. Each entry pins one product to a reviewed upstream release and declares
+what is needed to deploy it reproducibly: image reference and digest, licence, resource shape,
+persistent volumes, integration contract and a typed environment schema.
 
-This repository contains **catalog data and vendored deployment definitions, not platform code**.
-The control plane, edge proxy, identity provider and host runtime live in the
-[Seamnex platform repository](https://github.com/orbivort/seamnex). Nothing here compiles or runs on
-its own except the per-entry Docker Compose files, and those are designed to be driven by the
-platform rather than by a host port.
+This repository contains **catalog data and vendored deployment definitions, not platform code**. The
+control plane, edge proxy, identity provider and host runtime live in the
+[Seamnex platform repository](https://github.com/orbivort/seamnex). Only the per-entry Compose files
+run anywhere, and they are driven by the platform rather than by a host port.
 
 ## Repository layout
 
@@ -19,8 +17,8 @@ platform rather than by a host port.
 | `catalog/<id>.json` | One product record: version, image reference and digest, licence, stack, resources, volumes, integration contract, owner and verification date. |
 | `catalog/env/<id>.json` | The `env-schema/v1` declaration for that record: every variable the deployment reads, with type, constraint, default and override ceiling. |
 | `upstream/<id>/` | Vendored deployment source: `docker-compose.yml`, optional `Dockerfile` and first-boot scripts, `SOURCE_REVISION`, `README.md`, and `IMAGE-LICENCES.md` where the image is built locally. |
-| `LICENSE` | The GNU GPL v3 text; this repository is licensed under GPL-3.0-only. |
-| `THIRD-PARTY-NOTICES.md` | Inventory of every third-party component, its SPDX licence, evidence status and known verification gaps. |
+| `LICENSE` | GPL-3.0 licence text; this repository is licensed under GPL-3.0-only. |
+| `THIRD-PARTY-NOTICES.md` | Inventory of every third-party component, its SPDX licence, evidence status and open verification gaps. |
 | `CHANGELOG.md` | Notable changes, in Keep a Changelog format. |
 
 ## Available products
@@ -34,9 +32,10 @@ platform rather than by a host port.
 | `D09-01` | OpenProject 17.9.6 | Project & Work Management | Ruby / PostgreSQL | `openproject/openproject:17.9.6` | GPL-3.0 | Forward-auth gate, product login | 80 | 4 vCPU / 4 GiB |
 | `D11-01` | Metabase 0.65.2 | Data, Reporting & BI | JVM / PostgreSQL | `metabase/metabase:v0.65.2` | AGPL-3.0 | Forward-auth gate, product login | 3000 | 2 vCPU / 4 GiB |
 
-The licence column mirrors the short identifier recorded in each catalog record. The port column is
-the container port the platform routes to (`httpPort`); a managed deployment publishes no host port.
-Full SPDX expressions, transitive components and evidence status are in `THIRD-PARTY-NOTICES.md`.
+The licence column mirrors `licenseId` in each catalog record; "Forward-auth gate, product login" is
+the `fa_gate` guarantee class. The port column is the container port the platform routes to
+(`httpPort`); a managed deployment publishes no host port. Full SPDX expressions, transitive
+components and evidence status are in `THIRD-PARTY-NOTICES.md`.
 
 Two entries build their own image during deployment and are never pushed:
 
@@ -44,12 +43,23 @@ Two entries build their own image during deployment and are never pushed:
 - `D07-01` — OrangeHRM built from the official release archive on `php:8.3-apache-bookworm`, because
   upstream publishes no image.
 
-## Licence and verification
+## Licence
 
-This repository is licensed under **GPL-3.0-only**; the full text is in `LICENSE`. Everything
-authored here — catalog records, environment schemas, Compose definitions, bootstrap scripts and
-documentation — carries that licence.
+This repository is licensed under **GPL-3.0-only**; the full text is in `LICENSE`. Everything authored
+here — catalog records, environment schemas, Compose definitions, bootstrap scripts and documentation
+— carries that licence.
 
 Products and container images referenced by the catalog remain under their own licences. Before
 redistributing an image (`docker save`, an appliance export, a copied image store), read
 `THIRD-PARTY-NOTICES.md`.
+
+## Verification notes
+
+Reviewed against all six catalog records and their `catalog/env/` schemas on 2026-11-26.
+
+- The "small and mid-sized team" scope exists only as free text in the `description` fields; no
+  catalog field encodes a user count.
+- The two locally built images (`D02-01`, `D07-01`) carry an `imageDigest` that their own records
+  describe as reference data — the enforced pin is the image id the host built, recorded per instance.
+- `D06-01.sharedWith` names `D05-01`, which has no record in this repository; the entry is documented
+  here but not vendored.

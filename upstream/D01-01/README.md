@@ -1,38 +1,61 @@
-# D01-01 — EspoCRM, vendored upstream tree
+# D01-01 — EspoCRM 10.1.4, vendored upstream tree
 
-`docker-compose.yml` in this directory is the reviewed source of truth for a D01-01 deployment when
-the resolver cannot clone `https://github.com/espocrm/espocrm` (no route to the git host, or an
-air-gapped host). The resolver copies this tree into the per-attempt source directory and records
-`SOURCE_REVISION` as the source revision, so "what was deployed" is provable without the network.
+| Field | Value |
+| --- | --- |
+| Product | EspoCRM 10.1.4 (`espocrm/espocrm`) |
+| Image | `espocrm/espocrm:10.1.4@sha256:5f8fa9a7…c878c` — pinned by tag **and** digest, referenced by both the web container and the daemon |
+| Sidecar | `mariadb:11.4.13@sha256:a8992b5e…5309b` |
+| Port | `80` (`httpPort`); the file's `ports: ['8080:80']` is rewritten to `expose: ['80']` |
+| Identity | `native` — OIDC, authorization code + PKCE |
+| Volumes | `espocrm-data`, `espocrm-custom`, `espocrm-client-custom`, `espocrm-db` |
+| Resources | 1 vCPU / 2 GiB / 20 GiB |
+
+`docker-compose.yml` is the reviewed source of truth when the resolver cannot clone
+`https://github.com/espocrm/espocrm`. The resolver copies this tree into the per-attempt source
+directory and records `SOURCE_REVISION`, so "what was deployed" is provable without the network.
+
+## Deviations from the upstream example
 
 | Concern | Rule |
 | --- | --- |
-| Images | Every image is pinned to a full version **and** a digest: the product image `espocrm/espocrm:10.1.4@sha256:5f8fa9a7…` (it is referenced twice — the web container and the daemon — so both must move together) and the MariaDB sidecar `mariadb:11.4.13@sha256:a8992b5e…`. The compose policy refuses a floating tag (`unpinned_image`) before anything is applied; the digest additionally survives a tag being repointed at another artefact. |
-| Host ports | `ports: ['8080:80']` is kept from upstream; the platform rewrites it to `expose: ['80']` and asserts zero published ports immediately before apply. |
-| Container names | `container_name` is kept from upstream and stripped by the platform, which records the patch. Two instances of one product must not collide. |
-| `volumes_from` | Replaced by explicit named volumes: the construct is compose-v1 legacy and the Compose v2+ CLI does not implement it. |
-| Websocket | The `espocrm-websocket` container is omitted. It needs a routable `ws://` endpoint and the platform publishes no host ports; EspoCRM's core features do not depend on it. |
-| Application tree | **Not mounted.** The 10.x image treats a mount on `/var/www/html` as the legacy layout: its entrypoint returns before installing the product and before applying `ESPOCRM_CONFIG_*`. Only `data`, `custom` and `client/custom` are mounted, so the install runs and the environment reaches the product. |
-| Healthcheck | `bin/command app-check`, the image's own readiness command: `curl /` answers 200-on-302 and calls an uninstalled instance healthy. |
+| Pinning | Every image carries a full version; the product image also carries its digest. A floating tag is refused before apply (`unpinned_image`). |
+| Host ports | `ports: ['8080:80']` is kept from upstream; the platform rewrites it and asserts zero published ports before apply. |
+| Container names | `container_name` is kept verbatim and stripped by the platform, which records the patch. Two instances must not collide. |
+| `volumes_from` | Replaced by explicit named volumes — the construct is compose-v1 legacy and is not implemented by the Compose v2+ CLI. |
+| Websocket | The `espocrm-websocket` container is omitted: it needs a routable `ws://` endpoint and no host port is published. Core features do not depend on it. |
+| Application tree | **Not mounted.** The 10.x image treats a mount on `/var/www/html` as the legacy layout and returns before installing the product or applying `ESPOCRM_CONFIG_*`. Only `data`, `custom` and `client/custom` are mounted. |
+| Healthcheck | `bin/command app-check` — the image's own readiness command. `curl /` answers 200-on-302 and would call an uninstalled instance healthy. |
 
-## What the operator must supply
+## Environment (`catalog/env/D01-01.json`)
 
-The catalog entry `D01-01` declares the variables this file reads (`env_schema_var`), so the values are
-injected by the platform and never live in this tree:
+Values are injected by the platform and never live in this tree.
 
-- `ESPOCRM_SITE_URL` — the published route, e.g. `http://espocrm.<ingress domain>:<edge port>`.
-- `ESPOCRM_ADMIN_USERNAME` / `ESPOCRM_ADMIN_PASSWORD` — used only on the first install.
-- `ESPOCRM_DATABASE_PASSWORD` — secret; reconciles the MariaDB user with the application.
-- `ESPOCRM_DATABASE_ROOT_PASSWORD` — secret and **required** by the catalog entry: the file's
-  `${...:-mariadb_root}` fallback is a well-known value, so leaving it unset would give every
-  database in the instance network the same superuser password.
+| Variable | Purpose |
+| --- | --- |
+| `ESPOCRM_SITE_URL` | Published route; also the base of the OIDC redirect URI. Mirrored by the platform into `ESPOCRM_CONFIG_SITE_URL`, which the image applies on every start, so a route change reaches a running instance on restart. Installation-only itself. |
+| `ESPOCRM_ADMIN_USERNAME` / `ESPOCRM_ADMIN_PASSWORD` | First administrator. The password is read at install and kept as the break-glass credential while OIDC is active — a production secret, not a demo value. |
+| `ESPOCRM_DATABASE_PASSWORD` / `ESPOCRM_DATABASE_ROOT_PASSWORD` | Both required. The root password has no fallback in the file: the upstream `${...:-mariadb_root}` default would give every instance network the same superuser password. |
+| `ESPOCRM_DATABASE_PLATFORM` / `_HOST` / `_NAME` / `_USER` | Installer targets, fixed to `Mysql`, `espocrm-db`, `espocrm`, `espocrm`. |
+| `ESPOCRM_CONFIG_AUTH_TOKEN_LIFETIME` / `_MAX_IDLE_TIME` | 8 h / 8 h, which is what makes `integration.sessionMaxMinutes: 480` a fact rather than an estimate. The product otherwise has no absolute expiry. |
+| `ESPOCRM_CONFIG_AUTHENTICATION_METHOD` | `Oidc` by default; `Espo` restores the local form. |
+| `ESPOCRM_CONFIG_OIDC_*` | Client id/secret (`seamnex-<slug>`, platform-generated when empty), the four Keycloak endpoints, claims, team-sync flags and the fallback switches. Only needed while the method is `Oidc`. |
 
-To update the product, bump `SOURCE_REVISION`, the image tag **and its digest** in the same commit
-(both `image:` references), then deploy again; the render set is content-addressed, so the change is
-visible as a new set rather than an in-place mutation of the previous one. Read the digest from the
-registry rather than the catalog: `docker buildx imagetools inspect espocrm/espocrm:<version>` prints
-the index digest, which is the value `imageDigest` records.
+## Updating
 
-10.1 cannot run against an older database: it drops MariaDB 10.3–10.5 support, so the 11.4 sidecar
-above is the floor for this entry. The image itself is PHP 8.4 on Debian 13 (trixie) — the base
-10.0.11 already used, so the bump moves no third-party layer.
+Bump `SOURCE_REVISION`, the image tag **and its digest** (both `image:` references) in the same
+commit, then deploy. Read the digest from the registry, not the catalog:
+`docker buildx imagetools inspect espocrm/espocrm:<version>` prints the index digest that
+`imageDigest` records. The render set is content-addressed, so a change appears as a new set rather
+than an in-place mutation.
+
+10.1 dropped MariaDB 10.3–10.5 support, so the 11.4 sidecar is the floor for this entry.
+
+## Verification notes
+
+Reviewed against `catalog/D01-01.json` and `catalog/env/D01-01.json` on 2026-11-26.
+
+- **Not in the catalog JSON:** the MariaDB 10.3–10.5 floor and the image's PHP 8.4 / Debian 13 base.
+  Both are recorded in `CHANGELOG.md` (2026.11.2), not in a catalog field.
+- The OIDC endpoint defaults deliberately split browser and server legs (published IdP origin for
+  `AUTHORIZATION_ENDPOINT`, the `keycloak:8080` alias for token/JWKS/userinfo). That split is
+  asserted by the schema's `purpose` text, not by a machine-checkable field.
