@@ -27,7 +27,7 @@ platform rather than by a host port.
 
 | Entry | Product | Domain | Stack | Image | Licence | Identity | Port | Resources |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `D01-01` | EspoCRM 10.0.11 | CRM & Sales Pipeline | PHP / MySQL | `espocrm/espocrm:10.0.11` | AGPL-3.0 | Native OIDC (authorization code + PKCE) | 80 | 1 vCPU / 2 GiB |
+| `D01-01` | EspoCRM 10.1.4 | CRM & Sales Pipeline | PHP / MySQL | `espocrm/espocrm:10.1.4` | AGPL-3.0 | Native OIDC (authorization code + PKCE) | 80 | 1 vCPU / 2 GiB |
 | `D02-01` | Mautic 7.2.2 | Marketing & Lead Generation | PHP / MySQL | `seamnex/mautic:7.2.2` (built locally) | GPL-3.0 | Forward-auth gate, product login | 80 | 2 vCPU / 2 GiB |
 | `D06-01` | ERPNext 16.53.0 | ERP & Business Operations | Python / MariaDB | `frappe/erpnext:v16.53.0` | GPL-3.0 | Native OIDC (Frappe Social Login Key) | 8080 | 4 vCPU / 8 GiB |
 | `D07-01` | OrangeHRM 5.9 | HR & People Operations | PHP / MySQL | `seamnex/orangehrm:5.9` (built locally) | GPL-3.0 | Forward-auth gate, product login | 80 | 2 vCPU / 3 GiB |

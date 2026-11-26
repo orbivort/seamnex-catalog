@@ -7,7 +7,7 @@ air-gapped host). The resolver copies this tree into the per-attempt source dire
 
 | Concern | Rule |
 | --- | --- |
-| Images | Every image is pinned to a full version, and the MariaDB sidecar to its digest as well (`mariadb:11.4.13@sha256:a8992b5e…`). The compose policy refuses a floating tag (`unpinned_image`) before anything is applied. |
+| Images | Every image is pinned to a full version **and** a digest: the product image `espocrm/espocrm:10.1.4@sha256:5f8fa9a7…` (it is referenced twice — the web container and the daemon — so both must move together) and the MariaDB sidecar `mariadb:11.4.13@sha256:a8992b5e…`. The compose policy refuses a floating tag (`unpinned_image`) before anything is applied; the digest additionally survives a tag being repointed at another artefact. |
 | Host ports | `ports: ['8080:80']` is kept from upstream; the platform rewrites it to `expose: ['80']` and asserts zero published ports immediately before apply. |
 | Container names | `container_name` is kept from upstream and stripped by the platform, which records the patch. Two instances of one product must not collide. |
 | `volumes_from` | Replaced by explicit named volumes: the construct is compose-v1 legacy and the Compose v2+ CLI does not implement it. |
@@ -27,6 +27,12 @@ injected by the platform and never live in this tree:
   `${...:-mariadb_root}` fallback is a well-known value, so leaving it unset would give every
   database in the instance network the same superuser password.
 
-To update the product, bump `SOURCE_REVISION` and the image tag in the same commit, then deploy
-again; the render set is content-addressed, so the change is visible as a new set rather than an
-in-place mutation of the previous one.
+To update the product, bump `SOURCE_REVISION`, the image tag **and its digest** in the same commit
+(both `image:` references), then deploy again; the render set is content-addressed, so the change is
+visible as a new set rather than an in-place mutation of the previous one. Read the digest from the
+registry rather than the catalog: `docker buildx imagetools inspect espocrm/espocrm:<version>` prints
+the index digest, which is the value `imageDigest` records.
+
+10.1 cannot run against an older database: it drops MariaDB 10.3–10.5 support, so the 11.4 sidecar
+above is the floor for this entry. The image itself is PHP 8.4 on Debian 13 (trixie) — the base
+10.0.11 already used, so the bump moves no third-party layer.

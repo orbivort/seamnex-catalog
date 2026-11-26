@@ -1,4 +1,4 @@
-# Vendored upstream tree — D01-01 EspoCRM 10.0.11
+# Vendored upstream tree — D01-01 EspoCRM 10.1.4
 #
 # The platform resolves a source in this order: this vendored tree, then a `git clone` of the
 # repository named in the catalog. The tree exists because a deployment host may have no route to
@@ -6,11 +6,14 @@
 # network is down" is not an acceptable reason to be unable to deploy a pinned revision.
 #
 # Provenance: the production Compose example published by the official EspoCRM Docker distribution
-# (`espocrm/espocrm-docker`, image `espocrm/espocrm`), pinned to the 10.0.11 release. The application
-# repository `espocrm/espocrm` ships no Compose file and tags releases without a `v` prefix.
+# (`espocrm/espocrm-docker`, image `espocrm/espocrm`), pinned to the 10.1.4 release — tag and index
+# digest. The application repository `espocrm/espocrm` ships no Compose file and tags releases
+# without a `v` prefix.
 # Four deliberate deviations, each recorded rather than hidden:
-#   1. every image is pinned to a full version — the platform refuses a floating tag before apply
-#      (compose policy `unpinned_image`), and a floating tag makes "it worked yesterday" moot;
+#   1. every image is pinned to a full version, and the product image to its digest as well — the
+#      platform refuses a floating tag before apply (compose policy `unpinned_image`), a floating tag
+#      makes "it worked yesterday" moot, and a tag alone can still be repointed at another artefact,
+#      which a digest cannot;
 #   2. `volumes_from` is replaced by explicit named volumes — the construct is compose-v1 legacy and
 #      the Compose v2+ CLI the platform drives does not implement it;
 #   3. the websocket container is omitted: the platform never publishes a host port, so a
@@ -56,7 +59,7 @@ services:
     restart: unless-stopped
 
   espocrm:
-    image: espocrm/espocrm:10.0.11
+    image: espocrm/espocrm:10.1.4@sha256:5f8fa9a708893b9fbfe55a778f24c952a6a73b94c97fb126eccd21aa936c878c
     container_name: espocrm
     environment:
       ESPOCRM_DATABASE_HOST: espocrm-db
@@ -97,7 +100,7 @@ services:
     restart: unless-stopped
 
   espocrm-daemon:
-    image: espocrm/espocrm:10.0.11
+    image: espocrm/espocrm:10.1.4@sha256:5f8fa9a708893b9fbfe55a778f24c952a6a73b94c97fb126eccd21aa936c878c
     container_name: espocrm-daemon
     volumes:
       # The daemon runs `cron.php` and the job queue against the same installation, so it shares the

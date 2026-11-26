@@ -7,6 +7,22 @@ follow the `MAJOR.MINOR.PATCH` form of [Semantic Versioning](https://semver.org/
 Release tags carry a `catalog-` prefix, and the major component is the release year, so tag
 `catalog-2026.11.0` corresponds to version `2026.11.0`.
 
+## [2026.11.2]
+
+### Changed
+
+- `D01-01` — EspoCRM `10.0.11` → `10.1.4`, and the product image is now pinned by tag **and** digest:
+  `espocrm/espocrm:10.1.4@sha256:5f8fa9a708893b9fbfe55a778f24c952a6a73b94c97fb126eccd21aa936c878c`
+  (the indexing digest Docker Hub reports, confirmed by pulling the image; both `espocrm` and
+  `espocrm-daemon` reference it). `catalog/D01-01.json` (`imageRef`, `imageDigest`,
+  `upstream.currentVersion`, `upstream.latestVersion`, `packagingSource`, `checkedAt`),
+  `catalog/env/D01-01.json` (`appliesTo.imageRef`), `upstream/D01-01/SOURCE_REVISION` and the
+  documentation move with it. The four deviations recorded in the vendored Compose file still hold:
+  10.1.4's entrypoint still gates on `isLegacy()`, still applies `ESPOCRM_CONFIG_*` on start, still
+  ships `bin/command app-check`, and still expects only `data`, `custom` and `client/custom` as
+  mounts. The base image is unchanged (PHP 8.4 on Debian 13), and the 11.4 MariaDB sidecar already
+  satisfies 10.1's dropped support for MariaDB 10.3–10.5.
+
 ## [2026.11.1]
 
 ### Fixed
@@ -40,4 +56,5 @@ Release tags carry a `catalog-` prefix, and the major component is the release y
   - `D09-01` — OpenProject 17.9.6 (`openproject/openproject:17.9.6`, pinned by digest)
   - `D11-01` — Metabase 0.65.2 (`metabase/metabase:v0.65.2`, with a PostgreSQL 18)
 
-[Unreleased]: https://github.com/orbivort/seamnex-catalog/compare/catalog-2026.11.0...HEAD
+[Unreleased]: https://github.com/orbivort/seamnex-catalog/compare/catalog-2026.11.2...HEAD
+[2026.11.2]: https://github.com/orbivort/seamnex-catalog/compare/catalog-2026.11.1...catalog-2026.11.2

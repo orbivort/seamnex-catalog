@@ -1,7 +1,7 @@
 {
   "format": "env-schema/v1",
   "entryKey": "D01-01",
-  "appliesTo": { "imageRef": "espocrm/espocrm:10.0.11" },
+  "appliesTo": { "imageRef": "espocrm/espocrm:10.1.4" },
   "variables": [
     {
       "name": "ESPOCRM_SITE_URL",

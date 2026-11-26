@@ -7,19 +7,19 @@
   "repoUrl": "https://github.com/espocrm/espocrm",
   "licenseId": "AGPL-3.0",
   "stack": "PHP / MySQL",
-  "imageRef": "espocrm/espocrm:10.0.11",
-  "imageDigest": "sha256:8e1c7e97e0a1a08953a86af89c3808cb95410b6a5eb487d1e3475d2c7289357d",
+  "imageRef": "espocrm/espocrm:10.1.4",
+  "imageDigest": "sha256:5f8fa9a708893b9fbfe55a778f24c952a6a73b94c97fb126eccd21aa936c878c",
   "upstream": {
-    "currentVersion": "10.0.11",
-    "latestVersion": "10.0.11",
+    "currentVersion": "10.1.4",
+    "latestVersion": "10.1.4",
     "advisory": null,
     "releaseUrl": "https://github.com/espocrm/espocrm/releases",
-    "checkedAt": "2026-11-01T01:00:00Z"
+    "checkedAt": "2026-11-26T00:00:00Z"
   },
   "guaranteeClass": "native",
   "authMethod": "OIDC (authorization code + PKCE)",
   "packaging": "compose",
-  "packagingSource": "upstream compose example (espocrm/espocrm-docker) @ 10.0.11",
+  "packagingSource": "upstream compose example (espocrm/espocrm-docker) @ 10.1.4",
   "primaryInstanceId": null,
   "sharedWith": [],
   "httpPort": 80,
@@ -111,5 +111,5 @@
     "team": "Platform Operations"
   },
   "notes": "No-code custom entities absorb SMB variance without forking. SMTP relay verified during onboarding.",
-  "verifiedAt": "2026-11-01T01:00:00Z"
+  "verifiedAt": "2026-11-26T00:00:00Z"
 }

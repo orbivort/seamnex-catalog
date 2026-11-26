@@ -2,8 +2,8 @@
 
 | | |
 | --- | --- |
-| Document version | 1.0 |
-| Last reviewed | 2026-11-25 |
+| Document version | 1.1 |
+| Last reviewed | 2026-11-26 |
 | Applies to | this repository at its current commit (catalog schema **D01-01 … D11-01**) |
 | Owner | platform engineering — update this file in the same commit as the change it describes |
 | Status of this document | inventory of fact, **not legal advice** |
@@ -76,7 +76,7 @@ scope: this file covers what this repository puts on the host.
 
 | # | Component | Version | Licence (SPDX) | Role | Used by | Evidence |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | EspoCRM | 10.0.11 | `AGPL-3.0-only` | CRM application | D01-01 | `repo` |
+| 1 | EspoCRM | 10.1.4 | `AGPL-3.0-only` | CRM application | D01-01 | `repo` |
 | 2 | Mautic | 7.2.2 (image `7.2.2-apache`) | `GPL-3.0-only` | marketing automation | D02-01 | `unverified` |
 | 3 | ERPNext | 16.53.0 | `GPL-3.0-only` | ERP application | D06-01 | `repo` |
 | 4 | Frappe Framework | 16.53.0 (bundled) | `GPL-3.0-only` | ERPNext platform | D06-01 | `repo` |
@@ -116,7 +116,7 @@ The arrows read "is built from / runs on". Indentation shows what is inside the 
 
 ```text
 D01-01 EspoCRM
-├── espocrm/espocrm:10.0.11          EspoCRM 10.0.11 + PHP + Apache + Debian   [inherited]
+├── espocrm/espocrm:10.1.4          EspoCRM 10.1.4 + PHP + Apache + Debian   [inherited]
 └── mariadb:11.4.13                  MariaDB 11.4.13 + Debian                  [inherited]
 
 D02-01 Mautic
@@ -153,8 +153,8 @@ D11-01 Metabase
 | Field | Value |
 | --- | --- |
 | Component | EspoCRM |
-| Version | 10.0.11 |
-| Image | `espocrm/espocrm:10.0.11`, digest `sha256:8e1c7e97e0a1a08953a86af89c3808cb95410b6a5eb487d1e3475d2c7289357d` |
+| Version | 10.1.4 |
+| Image | `espocrm/espocrm:10.1.4@sha256:5f8fa9a708893b9fbfe55a778f24c952a6a73b94c97fb126eccd21aa936c878c` — pinned by tag **and digest** in the Compose file (both the web container and the daemon) |
 | Licence | `AGPL-3.0-only` (catalog records the deprecated short form `AGPL-3.0`) |
 | Copyright | EspoCRM, Inc. and contributors |
 | Source | <https://github.com/espocrm/espocrm> · image build: <https://github.com/espocrm/espocrm-docker> · releases: <https://github.com/espocrm/espocrm/releases> |
@@ -314,10 +314,12 @@ The image bundles Mautic 7.2.2 (§4.2) on a PHP/Apache/Debian stack equivalent t
 project's own licence inventory for that stack is not reproduced upstream; inherit §6.1 for the
 runtime layers, and treat the Mautic layer as `unverified` until G1 is closed.
 
-### 6.3 `espocrm/espocrm:10.0.11`
+### 6.3 `espocrm/espocrm:10.1.4`
 
-EspoCRM 10.0.11 (§4.1) on a PHP/Apache/Debian stack. EspoCRM's own image also carries Composer
-dependencies under their respective licences; they are not inventoried in this repository.
+EspoCRM 10.1.4 (§4.1) on `php:8.4-apache-trixie` — PHP 8.4.28 and Debian 13 (trixie), read out of the
+image itself. The previous pin, 10.0.11, was on the same base (PHP 8.4.27 / trixie), so the bump moves
+no third-party layer. EspoCRM's own image also carries Composer dependencies under their respective
+licences; they are not inventoried in this repository.
 
 ### 6.4 `frappe/erpnext:v16.53.0`
 
@@ -387,10 +389,10 @@ a host that already holds the image. Use `temp/` for the output; it is git-ignor
 
 ```powershell
 # 1. Package-level SBOM (Docker Desktop / BuildKit; Syft is the portable alternative)
-docker sbom espocrm/espocrm:10.0.11 --format spdx-json | Out-File -Encoding utf8 temp/sbom-espocrm-10.0.11.json
+docker sbom espocrm/espocrm:10.1.4 --format spdx-json | Out-File -Encoding utf8 temp/sbom-espocrm-10.1.4.json
 
 # 2. The licence files that actually travel inside the image
-docker run --rm --entrypoint sh espocrm/espocrm:10.0.11 -c 'ls -1 /usr/share/doc | head -50; cat /LICENSE 2>/dev/null | head -20'
+docker run --rm --entrypoint sh espocrm/espocrm:10.1.4 -c 'ls -1 /usr/share/doc | head -50; cat /LICENSE 2>/dev/null | head -20'
 
 # 3. Aggregated Debian/Ubuntu copyright notices
 docker run --rm --entrypoint sh frappe/erpnext:v16.53.0 -c 'grep -h "^License:" /usr/share/doc/*/copyright 2>/dev/null | sort | uniq -c | sort -rn | head -30'
@@ -602,3 +604,4 @@ git --no-pager diff -- THIRD-PARTY-NOTICES.md catalog upstream
 | Version | Date | Change | Reviewer |
 | --- | --- | --- | --- |
 | 1.0 | 2026-11-25 | Initial inventory: six catalog applications, four sidecar images, six base-image/OS groups, compatibility rules, notices and maintenance procedure | platform engineering |
+| 1.1 | 2026-11-26 | D01-01 moved to EspoCRM 10.1.4 (§2.1, §3, §4.1, §6.3, §6.9); product image now pinned by tag **and** digest; base image read out of 10.1.4 and found unchanged from 10.0.11 (PHP 8.4 / Debian 13) | platform engineering |
