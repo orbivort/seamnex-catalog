@@ -40,7 +40,7 @@ name: metabase
 
 services:
   metabase:
-    image: metabase/metabase:v0.65.2
+    image: metabase/metabase:v0.65.2@sha256:b62ac14872e9992d28218a2264d99484e0707064aae9fb594d8fbb3bc1518a9e
     environment:
       # Absolute base for every link the product generates (resets, subscriptions, alerts). The
       # platform interpolates it from `platform.env`: the value is derived from the instance's own

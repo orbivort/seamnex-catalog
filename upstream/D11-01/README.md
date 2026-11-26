@@ -75,7 +75,7 @@ leave the real cluster outside the mount and every redeploy would start an empty
   guarantee class is `fa_gate`: the edge gates the route with forward-auth and Metabase still shows
   its own sign-in form. That gap is the entry's recorded `deviation`, not a hidden one.
 
-## Verified behaviour (0.65.2, route `insights.localhost:8020`)
+## Verified behaviour
 
 | Probe | Result |
 | --- | --- |

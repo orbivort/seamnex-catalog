@@ -5,7 +5,7 @@
 | Product | ERPNext 16.53.0 |
 | Repository | <https://github.com/frappe/erpnext> (application only — ships no Compose file) |
 | Packaging reference | <https://github.com/frappe/frappe_docker> `compose.yaml`, `compose.mariadb.yaml`, `compose.redis.yaml` |
-| Image | `frappe/erpnext:v16.53.0` (public, multi-arch, pinned by tag) |
+| Image | `frappe/erpnext:v16.53.0` (public, multi-arch, pinned by tag and by the index digest `sha256:b961d69ed3265f44f712f40be58a3e6a22c8662f61a7e1a8097765534e3e9be2`) |
 | Product port | `8080` (nginx in the image, `NGINX_LISTEN_PORT`) |
 | Shared with | D05-01 — ERPNext Accounts runs on this same deployment |
 
